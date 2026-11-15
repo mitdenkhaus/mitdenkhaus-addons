@@ -7,7 +7,7 @@ Mit diesem Add-on erreichen Sie Ihre Zentrale von unterwegs unter
 
 ```
 Handy ──TLS──▶ Relay (mitdenkhaus.de) ──Tunnel──▶ dieses Add-on ──▶ Home Assistant
-               leitet nur weiter            Caddy entschlüsselt     homeassistant:8123
+               leitet nur weiter            Caddy entschlüsselt     homeassistant:<port>
 ```
 
 - Das Add-on baut mit [frp](https://github.com/fatedier/frp) eine Verbindung
@@ -41,9 +41,9 @@ Absender aller Zugriffe von unterwegs die interne Adresse dieses Add-ons
   Angreifers.
 - Tragen Sie das interne Netz `172.30.32.0/23` **nie** bei `trusted_networks`
   ein, sonst wäre der Fernzugang ohne Anmeldung offen.
-- Home Assistant muss auf Port 8123 unverschlüsselt (http) antworten, so wie
-  in der Grundeinstellung. Ein eigenes Zertifikat in Home Assistant
-  (`ssl_certificate`) wird nicht unterstützt.
+- Port und Verschlüsselung von Home Assistant liest das Add-on beim Start vom
+  Supervisor (Grundeinstellung 8123, http). Nach einer Änderung dort das
+  Add-on neu starten.
 
 ## Fehlersuche
 
@@ -55,4 +55,4 @@ Absender aller Zugriffe von unterwegs die interne Adresse dieses Add-ons
   `http://<kürzel>.mitdenkhaus.de` nicht über den Relay. Caddy versucht es
   selbstständig erneut.
 - **„502“ im Browser** – Home Assistant antwortet nicht auf
-  `http://homeassistant:8123`.
+  `homeassistant:<port>` (Port steht beim Start im Protokoll).

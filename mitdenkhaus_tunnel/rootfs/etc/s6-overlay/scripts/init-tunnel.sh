@@ -118,6 +118,35 @@ if ! output="$(frpc verify -c /etc/frp/frpc.toml 2>&1)"; then
 fi
 
 # ------------------------------------------------------------------------------
+# Home Assistant: Port und SSL vom Supervisor (Grundeinstellung 8123, http).
+# Manche Zentralen laufen auf Port 80 oder mit eigenem Zertifikat.
+# ------------------------------------------------------------------------------
+ha_port=8123
+ha_ssl=false
+if [[ -n "${SUPERVISOR_TOKEN:-}" ]]; then
+    if core="$(curl -fsS --max-time 10 -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+            "http://supervisor/core/info")"; then
+        ha_port="$(jq -r '.data.port // 8123' <<<"${core}" 2>/dev/null || echo 8123)"
+        ha_ssl="$(jq -r '.data.ssl // false' <<<"${core}" 2>/dev/null || echo false)"
+    else
+        bashio::log.warning "Einstellungen von Home Assistant nicht abrufbar, nehme Port 8123."
+    fi
+fi
+if ! [[ "${ha_port}" =~ ^[0-9]+$ ]]; then
+    bashio::exit.nok "Ungültiger Port von Home Assistant: '${ha_port}'."
+fi
+
+ha_upstream="homeassistant:${ha_port}"
+ha_transport=""
+if [[ "${ha_ssl}" == "true" ]]; then
+    # Home Assistant mit eigenem Zertifikat: Das Zertifikat lautet nicht auf
+    # "homeassistant". Die Strecke verlässt die Green nicht (internes Netz).
+    # TLS über den Transport statt "https://": Caddy lehnt https mit Port 80 ab.
+    ha_transport=$'transport http {\n\t\t\ttls\n\t\t\ttls_insecure_skip_verify\n\t\t}'
+fi
+bashio::log.info "Home Assistant: ${ha_upstream} ($([[ "${ha_ssl}" == "true" ]] && echo https || echo http))"
+
+# ------------------------------------------------------------------------------
 # Caddy
 # ------------------------------------------------------------------------------
 acme=""
@@ -147,7 +176,8 @@ cat > /etc/caddy/Caddyfile <<EOF
 
 ${fqdn} {
 	encode zstd gzip
-	reverse_proxy homeassistant:8123 {
+	reverse_proxy ${ha_upstream} {
+		${ha_transport}
 		# Home Assistant lehnt Anfragen mit X-Forwarded-For ab, solange
 		# kein vertrauenswürdiger Proxy eingetragen ist. Ohne diese Header
 		# funktioniert es ohne Änderung an der http-Konfiguration.

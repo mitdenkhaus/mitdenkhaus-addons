@@ -85,7 +85,7 @@ Rechte und warum:
 ## Mitdenkhaus Tunnel
 
 ```
-Handy ──TLS (SNI k7f3.mitdenkhaus.de)──▶ frps :443 ──frp──▶ frpc ─▶ Caddy :443 ─▶ homeassistant:8123
+Handy ──TLS (SNI k7f3.mitdenkhaus.de)──▶ frps :443 ──frp──▶ frpc ─▶ Caddy :443 ─▶ homeassistant:<port>
 Let's Encrypt ──HTTP-01──────────────▶ frps :80  ──frp──▶ frpc ─▶ Caddy :80
 ```
 
@@ -94,7 +94,9 @@ Let's Encrypt ──HTTP-01──────────────▶ frps :8
   mit `subdomain = <kürzel>`.
 - Caddy lauscht nur auf `127.0.0.1` im Add-on, holt das Zertifikat für
   `<kürzel>.<domain>` von Let's Encrypt (gespeichert in `/data/caddy`) und
-  leitet an `http://homeassistant:8123` weiter. WebSockets (`/api/websocket`)
+  leitet an Home Assistant weiter. Port und SSL liest das Add-on beim Start
+  vom Supervisor (`GET /core/info`, dafür `hassio_api: true`); Grundeinstellung
+  ist `http://homeassistant:8123`, manche Zentralen laufen auf Port 80. WebSockets (`/api/websocket`)
   gehen durch.
 - frpc prüft das Zertifikat des Relays gegen `rootfs/etc/frp/relay-ca.pem`
   (eigene CA von Mitdenkhaus, siehe `relay/README.md`). Fehlt die Datei, steht
@@ -125,8 +127,9 @@ die interne Adresse des Add-ons (`172.30.33.x`).
 - Eine IP-Sperre nach Fehlversuchen trifft dann den ganzen Fernzugang.
 - `172.30.32.0/23` darf **nie** in `trusted_networks` stehen (sonst Zugang
   ohne Anmeldung).
-- Home Assistant muss auf 8123 per http antworten (Grundeinstellung). Ein
-  eigenes Zertifikat in Home Assistant wird nicht unterstützt.
+- Hat Home Assistant ein eigenes Zertifikat, spricht Caddy per https mit
+  `homeassistant:<port>` und prüft das Zertifikat dabei nicht (es lautet nicht
+  auf diesen Namen; die Strecke bleibt im internen Netz der Green).
 
 ## Fehlersuche
 
@@ -143,7 +146,7 @@ Protokolle: *Einstellungen → Apps → Add-on → Protokoll*, oder per SSH
 | Tunnel: „Warte auf die Verbindung zum Relay …“ und frpc meldet „Token ungültig“ / „Subdomain gehört nicht …“ | Backend lehnt ab (Login bzw. NewProxy). Token und Kürzel passen nicht zusammen. |
 | Tunnel: frpc „connection refused“ / „i/o timeout“ | Relay nicht erreichbar (Port 7000, DNS `relay.mitdenkhaus.de`). |
 | Tunnel: Caddy „challenge failed“ | Let's Encrypt erreicht `http://<kürzel>.mitdenkhaus.de` nicht (Wildcard-DNS, Relay Port 80). Caddy versucht es erneut. |
-| Browser: 502 | Home Assistant antwortet nicht auf `http://homeassistant:8123` (läuft HA mit eigenem SSL?). |
+| Browser: 502 | Home Assistant antwortet nicht unter der Adresse, die im Protokoll steht („Home Assistant: …“). Nach Änderung von Port/SSL das Add-on neu starten. |
 | Browser: 404 von frp | Tunnel der Zentrale ist nicht verbunden. |
 
 ## Entwicklung
