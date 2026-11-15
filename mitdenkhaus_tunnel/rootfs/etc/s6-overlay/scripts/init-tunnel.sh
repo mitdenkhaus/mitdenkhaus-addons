@@ -123,9 +123,17 @@ fi
 # ------------------------------------------------------------------------------
 ha_port=8123
 ha_ssl=false
+core=""
 if [[ -n "${SUPERVISOR_TOKEN:-}" ]]; then
-    if core="$(curl -fsS --max-time 10 -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
-            "http://supervisor/core/info")"; then
+    for attempt in 1 2 3 4 5; do
+        if core="$(curl -fsS --max-time 10 -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+                "http://supervisor/core/info" 2>/dev/null)"; then
+            break
+        fi
+        core=""
+        if [[ "${attempt}" -lt 5 ]]; then sleep 2; fi
+    done
+    if [[ -n "${core}" ]]; then
         ha_port="$(jq -r '.data.port // 8123' <<<"${core}" 2>/dev/null || echo 8123)"
         ha_ssl="$(jq -r '.data.ssl // false' <<<"${core}" 2>/dev/null || echo false)"
     else
