@@ -1,0 +1,16 @@
+configuration:
+  server:
+    name: Relay
+    description: Adresse des Tunnel-Relays.
+  server_port:
+    name: Relay-Port
+    description: Port, auf dem frps die Verbindung annimmt.
+  token:
+    name: Token
+    description: Tunnel-Token (tun_…) vom Mitdenkhaus-Backend.
+  subdomain:
+    name: Kürzel
+    description: Subdomain der Zentrale, z. B. k7f3 für https://k7f3.mitdenkhaus.de.
+  domain:
+    name: Domain
+    description: Domain des Relays.

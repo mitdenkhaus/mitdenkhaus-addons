@@ -1,0 +1,13 @@
+configuration:
+  authkey:
+    name: Auth key
+    description: One-time key from the Mitdenkhaus backend. Leave empty after a successful login.
+  hostname:
+    name: Hostname
+    description: Name of this hub in the tailnet (set by the backend, e.g. mdh-k7f3).
+  login_server:
+    name: Login server
+    description: Tailscale coordination server.
+  tags:
+    name: Tags
+    description: Device tags in the tailnet (tag:kunde).

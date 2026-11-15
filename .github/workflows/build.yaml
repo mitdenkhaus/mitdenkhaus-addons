@@ -1,0 +1,41 @@
+# Prüft die Add-ons bei jedem Push und Pull Request: Shellcheck und Bau auf
+# echten amd64- und aarch64-Runnern (die Green ist aarch64). Veröffentlicht
+# noch keine Images; dafür später "image:" in config.yaml und einen Push-Schritt.
+name: Bauen
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shellcheck
+        run: |
+          mapfile -t files < <(grep -rlE --exclude-dir=.git '^#!.*(bash|bashio)' .)
+          docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable -x "${files[@]}"
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        addon: [mitdenkhaus_wartung, mitdenkhaus_tunnel]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bauen
+        run: docker build -t "test/${{ matrix.addon }}" "${{ matrix.addon }}"
+      - name: Binärdateien starten
+        run: |
+          if [[ "${{ matrix.addon }}" == mitdenkhaus_wartung ]]; then
+            docker run --rm --entrypoint tailscale "test/${{ matrix.addon }}" version
+          else
+            docker run --rm --entrypoint frpc "test/${{ matrix.addon }}" --version
+            docker run --rm --entrypoint caddy "test/${{ matrix.addon }}" version
+          fi

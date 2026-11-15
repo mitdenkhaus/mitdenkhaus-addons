@@ -1,0 +1,13 @@
+configuration:
+  authkey:
+    name: Auth-Key
+    description: Einmal-Key vom Mitdenkhaus-Backend. Nach erfolgreicher Anmeldung leer lassen.
+  hostname:
+    name: Gerätename
+    description: Name der Zentrale im Tailnet (vom Backend vorgegeben, z. B. mdh-k7f3).
+  login_server:
+    name: Anmeldeserver
+    description: Koordinationsserver von Tailscale.
+  tags:
+    name: Tags
+    description: Tags des Geräts im Tailnet (tag:kunde).

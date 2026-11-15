@@ -1,0 +1,35 @@
+name: Mitdenkhaus Wartung
+version: "0.1.0"
+slug: mitdenkhaus_wartung
+description: Wartungszugang für Mitdenkhaus über Tailscale – nur solange Sie ihn erlauben.
+url: https://github.com/mitdenkhaus/mitdenkhaus-addons
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: services
+boot: auto
+# tailscale0 entsteht im Netz des Hosts, damit die Wartung Home Assistant
+# (Port 8123) und das Betriebssystem so erreicht wie im Heimnetz.
+host_network: true
+privileged:
+  - NET_ADMIN
+  - NET_RAW
+devices:
+  - /dev/net/tun
+# Die Geräteidentität im Tailnet gehört zu genau dieser Green. Eine
+# wiederhergestellte Sicherung auf anderer Hardware braucht einen neuen Key.
+backup_exclude:
+  - "tailscale/*"
+options:
+  authkey: ""
+  hostname: ""
+  login_server: "https://controlplane.tailscale.com"
+  tags:
+    - "tag:kunde"
+schema:
+  authkey: "password?"
+  hostname: "str?"
+  login_server: url
+  tags:
+    - "str"

@@ -1,0 +1,8 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# frpc im Vordergrund: Verbindung zum Relay, zwei Proxies (https, http).
+# ==============================================================================
+
+bashio::log.info "Starte frpc …"
+exec /usr/local/bin/frpc -c /etc/frp/frpc.toml

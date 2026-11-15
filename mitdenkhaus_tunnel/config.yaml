@@ -1,0 +1,25 @@
+name: Mitdenkhaus Tunnel
+version: "0.1.0"
+slug: mitdenkhaus_tunnel
+description: Erreichbarkeit von unterwegs über https://<kürzel>.mitdenkhaus.de – verschlüsselt bis in Ihr Haus.
+url: https://github.com/mitdenkhaus/mitdenkhaus-addons
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+# Kein host_network: frpc baut die Verbindung nach außen auf, Caddy lauscht nur
+# auf 127.0.0.1 im Add-on, Home Assistant wird als "homeassistant:8123" erreicht.
+options:
+  server: "relay.mitdenkhaus.de"
+  server_port: 7000
+  token: ""
+  subdomain: ""
+  domain: "mitdenkhaus.de"
+schema:
+  server: str
+  server_port: port
+  token: "password?"
+  subdomain: "str?"
+  domain: str

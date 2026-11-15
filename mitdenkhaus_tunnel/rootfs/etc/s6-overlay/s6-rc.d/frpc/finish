@@ -1,0 +1,20 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Endet frpc unerwartet, wird das ganze Add-on beendet, damit der
+# Supervisor (Watchdog) es neu startet und der Fehler sichtbar ist.
+# ==============================================================================
+
+exit_code="${1}"
+signal="${2}"
+
+if [[ "${exit_code}" -eq 256 ]]; then
+    # Durch ein Signal beendet (z. B. beim Stoppen des Add-ons).
+    exit_code=$((128 + signal))
+fi
+
+if [[ "${exit_code}" -ne 0 && "${exit_code}" -ne 143 ]]; then
+    bashio::log.error "frpc wurde mit Code ${exit_code} beendet."
+    echo "${exit_code}" > /run/s6-linux-init-container-results/exitcode
+    exec /run/s6/basedir/bin/halt
+fi

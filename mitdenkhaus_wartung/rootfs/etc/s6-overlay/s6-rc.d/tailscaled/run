@@ -1,0 +1,16 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# tailscaled im Vordergrund. Zustand (Geräteschlüssel, Anmeldung) liegt in /data.
+# ==============================================================================
+
+mkdir -p /data/tailscale /var/run/tailscale
+
+bashio::log.info "Starte tailscaled …"
+
+# --no-logs-no-support: keine Protokolle an Tailscale hochladen.
+exec /usr/local/bin/tailscaled \
+    --state=/data/tailscale/tailscaled.state \
+    --statedir=/data/tailscale \
+    --socket=/var/run/tailscale/tailscaled.sock \
+    --no-logs-no-support

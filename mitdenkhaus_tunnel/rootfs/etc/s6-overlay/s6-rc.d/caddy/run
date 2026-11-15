@@ -1,0 +1,27 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Caddy beendet TLS für <subdomain>.<domain> und leitet an Home Assistant.
+#
+# Caddy startet erst, wenn beide Proxies am Relay angemeldet sind. Sonst
+# schlägt die HTTP-01-Prüfung fehl und zählt gegen die Limits von
+# Let's Encrypt (fehlgeschlagene Prüfungen pro Stunde).
+# ==============================================================================
+
+proxies_running() {
+    curl -fsS --max-time 3 http://127.0.0.1:7400/api/status 2>/dev/null \
+        | jq -e '([.https[]?, .http[]?] | map(select(.status == "running")) | length) >= 2' \
+            >/dev/null 2>&1
+}
+
+waited=0
+until proxies_running; do
+    if (( waited % 60 == 0 )); then
+        bashio::log.info "Warte auf die Verbindung zum Relay …"
+    fi
+    sleep 2
+    waited=$((waited + 2))
+done
+bashio::log.info "Tunnel steht. Starte Caddy …"
+
+exec /usr/local/bin/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
