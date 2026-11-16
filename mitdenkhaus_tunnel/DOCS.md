@@ -26,8 +26,21 @@ Die Optionen setzt normalerweise die Mitdenkhaus-App.
 | `server` | Relay, Standard `relay.mitdenkhaus.de` |
 | `server_port` | Port des Relays, Standard `7000` |
 | `token` | Tunnel-Token (`tun_…`) vom Mitdenkhaus-Backend |
+| `access_key` | Zugangsschlüssel (`acc_…`) vom Mitdenkhaus-Backend |
 | `subdomain` | Kürzel der Zentrale, z. B. `k7f3` |
 | `domain` | Standard `mitdenkhaus.de` |
+
+## Nur für die Mitdenkhaus-App
+
+Von unterwegs kommen nur Anfragen der Mitdenkhaus-App zu Home Assistant: Die
+App schickt bei jeder Anfrage den Header `X-Mitdenkhaus-Key` mit dem
+Zugangsschlüssel. Alle anderen Anfragen – Browser, Scanner, Passwort-Raten –
+bekommen „403 Kein Zugriff“, bevor sie Home Assistant erreichen. Das gilt auch
+für WebSockets. Ist kein Schlüssel gesetzt, ist der Zugriff von unterwegs
+ganz gesperrt. Im Heimnetz ändert sich nichts.
+
+Der Schlüssel wird nicht protokolliert und nicht an Home Assistant
+weitergegeben.
 
 ## Home Assistant
 
@@ -54,5 +67,8 @@ Absender aller Zugriffe von unterwegs die interne Adresse dieses Add-ons
 - **Zertifikatsfehler im Protokoll von Caddy** – Let's Encrypt erreicht
   `http://<kürzel>.mitdenkhaus.de` nicht über den Relay. Caddy versucht es
   selbstständig erneut.
+- **„403 Kein Zugriff“ im Browser** – gewollt: Von unterwegs geht es nur über
+  die Mitdenkhaus-App. Kommt 403 auch in der App, passt der Schlüssel nicht;
+  Fernzugriff in der App aus- und wieder einschalten.
 - **„502“ im Browser** – Home Assistant antwortet nicht auf
   `homeassistant:<port>` (Port steht beim Start im Protokoll).

@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.2.0
+
+- Neue Option `access_key`: Von unterwegs kommen nur Anfragen mit dem Header
+  `X-Mitdenkhaus-Key` (aus der Mitdenkhaus-App) zu Home Assistant, alles andere
+  bekommt 403 – auch WebSockets. Ohne Schlüssel ist der Zugriff gesperrt.
+  Port 80 (Let's Encrypt, Umleitung auf https) bleibt offen.
+
 ## 0.1.2
 
 - frpc prüft das Zertifikat des Relays gegen die CA von Mitdenkhaus

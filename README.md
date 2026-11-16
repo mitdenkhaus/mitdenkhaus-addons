@@ -110,9 +110,23 @@ Optionen:
 server: "relay.mitdenkhaus.de"
 server_port: 7000
 token: ""            # tun_… vom Backend (POST /v1/tunnel)
+access_key: ""       # acc_… vom Backend (POST /v1/tunnel), Header der App
 subdomain: ""        # k7f3
 domain: "mitdenkhaus.de"
 ```
+
+### Nur für die App (`access_key`)
+
+Auf `https://<kürzel>.<domain>` leitet Caddy nur Anfragen mit dem Header
+`X-Mitdenkhaus-Key: <access_key>` an Home Assistant weiter und entfernt den
+Header vorher; alles andere bekommt 403 (auch der WebSocket-Upgrade). Ohne
+gültigen Schlüssel ist alles gesperrt (fail closed). Port 80 bleibt für die
+HTTP-01-Prüfung von Let's Encrypt und die Umleitung auf https offen.
+
+Folge: Ein Browser kann den Header nicht setzen. Alles, was nicht aus dem Code
+der App kommt – etwa die Anmeldeseite von Home Assistant im System-Browser
+oder eine WebView –, geht von unterwegs nicht. Die Anmeldung der App
+muss deshalb im Heimnetz erfolgen, solange sie über den System-Browser läuft.
 
 ### Home Assistant: `http:`-Konfiguration
 
@@ -146,6 +160,7 @@ Protokolle: *Einstellungen → Apps → Add-on → Protokoll*, oder per SSH
 | Tunnel: „Warte auf die Verbindung zum Relay …“ und frpc meldet „Token ungültig“ / „Subdomain gehört nicht …“ | Backend lehnt ab (Login bzw. NewProxy). Token und Kürzel passen nicht zusammen. |
 | Tunnel: frpc „connection refused“ / „i/o timeout“ | Relay nicht erreichbar (Port 7000, DNS `relay.mitdenkhaus.de`). |
 | Tunnel: Caddy „challenge failed“ | Let's Encrypt erreicht `http://<kürzel>.mitdenkhaus.de` nicht (Wildcard-DNS, Relay Port 80). Caddy versucht es erneut. |
+| 403 „Kein Zugriff“ von unterwegs | Gewollt für alles außer der App. In der App: Schlüssel passt nicht – Fernzugriff aus- und einschalten. Protokoll: „Kein Zugangsschlüssel gesetzt“? |
 | Browser: 502 | Home Assistant antwortet nicht unter der Adresse, die im Protokoll steht („Home Assistant: …“). Nach Änderung von Port/SSL das Add-on neu starten. |
 | Browser: 404 von frp | Tunnel der Zentrale ist nicht verbunden. |
 

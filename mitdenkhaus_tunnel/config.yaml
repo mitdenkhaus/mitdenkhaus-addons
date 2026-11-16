@@ -1,5 +1,5 @@
 name: Mitdenkhaus Tunnel
-version: "0.1.2"
+version: "0.2.0"
 slug: mitdenkhaus_tunnel
 description: Erreichbarkeit von unterwegs über https://<kürzel>.mitdenkhaus.de – verschlüsselt bis in Ihr Haus.
 url: https://github.com/mitdenkhaus/mitdenkhaus-addons
@@ -17,11 +17,13 @@ options:
   server: "relay.mitdenkhaus.de"
   server_port: 7000
   token: ""
+  access_key: ""
   subdomain: ""
   domain: "mitdenkhaus.de"
 schema:
   server: str
   server_port: port
   token: "password?"
+  access_key: "password?"
   subdomain: "str?"
   domain: str

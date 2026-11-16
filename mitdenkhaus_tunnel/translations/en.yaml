@@ -8,6 +8,9 @@ configuration:
   token:
     name: Token
     description: Tunnel token (tun_…) from the Mitdenkhaus backend.
+  access_key:
+    name: Access key
+    description: Key (acc_…) from the Mitdenkhaus backend. Only requests carrying this key reach Home Assistant from outside.
   subdomain:
     name: Subdomain
     description: Subdomain of this hub, e.g. k7f3 for https://k7f3.mitdenkhaus.de.

@@ -8,6 +8,9 @@ configuration:
   token:
     name: Token
     description: Tunnel-Token (tun_…) vom Mitdenkhaus-Backend.
+  access_key:
+    name: Zugangsschlüssel
+    description: Schlüssel (acc_…) vom Mitdenkhaus-Backend. Nur Anfragen mit diesem Schlüssel kommen von unterwegs zu Home Assistant.
   subdomain:
     name: Kürzel
     description: Subdomain der Zentrale, z. B. k7f3 für https://k7f3.mitdenkhaus.de.

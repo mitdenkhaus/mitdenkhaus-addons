@@ -30,6 +30,7 @@ server="$(opt server)"
 server_port="$(opt server_port)"
 token="$(opt token)"
 subdomain="$(opt subdomain)"
+access_key="$(opt access_key)"
 domain="$(opt domain)"
 
 fail=0
@@ -55,6 +56,19 @@ if ! [[ "${server_port}" =~ ^[0-9]+$ ]]; then
 fi
 if [[ "${fail}" -ne 0 ]]; then
     bashio::exit.nok "Tunnel über die Mitdenkhaus-App neu einrichten."
+fi
+
+# Zugangsschlüssel der App: Nur Anfragen mit passendem Header
+# X-Mitdenkhaus-Key kommen über den Tunnel zu Home Assistant. Ohne gültigen
+# Schlüssel wird alles abgewiesen (fail closed). Der Schlüssel wird nie geloggt.
+# (Zeichen und Länge getrennt prüfen: Bash-Regex erlaubt höchstens {,255}.)
+if bashio::var.has_value "${access_key}" \
+    && ! { [[ "${access_key}" =~ ^[A-Za-z0-9_-]+$ ]] && (( ${#access_key} >= 16 && ${#access_key} <= 256 )); }; then
+    bashio::log.warning "Option 'access_key' hat ein ungültiges Format und wird nicht verwendet."
+    access_key=""
+fi
+if ! bashio::var.has_value "${access_key}"; then
+    bashio::log.warning "Kein Zugangsschlüssel gesetzt: Zugriff von unterwegs ist gesperrt (403)."
 fi
 
 fqdn="${subdomain}.${domain}"
@@ -166,7 +180,33 @@ if [[ -n "${MDH_ACME_CA:-}" ]]; then
     fi
 fi
 
+# Site für <subdomain>.<domain>: mit Schlüssel an Home Assistant, sonst 403.
+proxy_block=""
+if bashio::var.has_value "${access_key}"; then
+    proxy_block="$(cat <<EOF
+	@app header X-Mitdenkhaus-Key "${access_key}"
+	handle @app {
+		encode zstd gzip
+		reverse_proxy ${ha_upstream} {
+			${ha_transport}
+			# Der Schlüssel bleibt im Tunnel und geht nicht an Home Assistant.
+			header_up -X-Mitdenkhaus-Key
+			# Home Assistant lehnt Anfragen mit X-Forwarded-For ab, solange
+			# kein vertrauenswürdiger Proxy eingetragen ist. Ohne diese Header
+			# funktioniert es ohne Änderung an der http-Konfiguration.
+			header_up -X-Forwarded-For
+			header_up -X-Forwarded-Proto
+			header_up -X-Forwarded-Host
+			header_up -Forwarded
+			header_up -X-Real-IP
+		}
+	}
+EOF
+)"
+fi
+
 mkdir -p /etc/caddy /data/caddy
+(umask 077; : > /etc/caddy/Caddyfile)
 cat > /etc/caddy/Caddyfile <<EOF
 # Erzeugt von init-tunnel.sh – Änderungen gehen beim Neustart verloren.
 {
@@ -183,22 +223,17 @@ cat > /etc/caddy/Caddyfile <<EOF
 }
 
 ${fqdn} {
-	encode zstd gzip
-	reverse_proxy ${ha_upstream} {
-		${ha_transport}
-		# Home Assistant lehnt Anfragen mit X-Forwarded-For ab, solange
-		# kein vertrauenswürdiger Proxy eingetragen ist. Ohne diese Header
-		# funktioniert es ohne Änderung an der http-Konfiguration.
-		header_up -X-Forwarded-For
-		header_up -X-Forwarded-Proto
-		header_up -X-Forwarded-Host
-		header_up -Forwarded
-		header_up -X-Real-IP
+${proxy_block}
+	handle {
+		respond "Kein Zugriff" 403
 	}
 }
 EOF
 
 if ! output="$(caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile 2>&1)"; then
+    if bashio::var.has_value "${access_key}"; then
+        output="${output//${access_key}/***}"
+    fi
     bashio::exit.nok "Caddy-Konfiguration ungültig: ${output}"
 fi
 exit 0
