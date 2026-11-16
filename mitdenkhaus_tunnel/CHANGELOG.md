@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.1.2
+
+- frpc prüft das Zertifikat des Relays gegen die CA von Mitdenkhaus
+  (`/etc/frp/relay-ca.pem`, gültig bis 2046).
+
 ## 0.1.1
 
 - Port und SSL von Home Assistant werden beim Start vom Supervisor gelesen
