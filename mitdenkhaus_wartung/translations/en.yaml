@@ -11,3 +11,12 @@ configuration:
   tags:
     name: Tags
     description: Device tags in the tailnet (tag:kunde).
+  heimnetz_freigeben:
+    name: Share home network
+    description: Allow Mitdenkhaus to reach devices in your home network during maintenance (e.g. a Shelly's web interface).
+  standort_id:
+    name: Site ID
+    description: Unique number of this hub (set by the backend).
+  heimnetz:
+    name: Home network
+    description: Only if automatic detection is wrong, e.g. 192.168.178.0/24.

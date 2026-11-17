@@ -2,8 +2,9 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Meldet die Green im Tailnet an (einmal mit Auth-Key) bzw. setzt bei bereits
-# angemeldeten Geräten nur die Einstellungen. Kein Subnet-Routing, kein
-# Exit-Node, kein Funnel/Serve, kein Tailscale-SSH.
+# angemeldeten Geräten nur die Einstellungen. Kein Exit-Node, kein Funnel,
+# kein Tailscale-SSH. Das Heimnetz wird nur freigegeben, wenn der Kunde es
+# erlaubt hat (Option heimnetz_freigeben), und nur über 4via6 (heimnetz.sh).
 #
 # Die Optionen kommen direkt aus /data/options.json (schreibt der Supervisor),
 # damit das Skript auch ohne Supervisor getestet werden kann.
@@ -12,6 +13,8 @@ set -o nounset -o pipefail
 
 readonly OPTIONS=/data/options.json
 readonly TS=/usr/local/bin/tailscale
+# shellcheck source=SCRIPTDIR/heimnetz.sh
+source /etc/s6-overlay/scripts/heimnetz.sh
 
 opt() {
     jq -r --arg k "$1" '.[$k] // empty | if type == "array" then join(",") else tostring end' "${OPTIONS}"
@@ -52,6 +55,24 @@ for _ in $(seq 1 60); do
 done
 bashio::log.info "Zustand von Tailscale: ${state:-unbekannt}"
 
+# Heimnetz-Freigabe (4via6). Ohne Erlaubnis oder bei Fehlern: keine Route.
+routes=""
+if heimnetz_aktiv; then
+    if ! standort="$(heimnetz_standort)"; then
+        bashio::log.warning "Heimnetz-Freigabe erlaubt, aber keine gültige standort_id (1–65535). Keine Freigabe."
+    elif ! cidr="$(heimnetz_cidr)"; then
+        bashio::log.warning "Heimnetz nicht erkannt oder kein privates Netz (/16–/30). Keine Freigabe."
+    elif ! routes="$("${TS}" debug via "${standort}" "${cidr}")"; then
+        bashio::log.warning "4via6-Bereich für ${cidr} nicht berechenbar. Keine Freigabe."
+        routes=""
+    else
+        bashio::log.info "Heimnetz ${cidr} wird als Standort ${standort} angeboten (${routes})."
+        bashio::log.info "Mitdenkhaus muss die Freigabe im Tailnet noch bestätigen."
+    fi
+else
+    bashio::log.info "Heimnetz-Freigabe ist aus. Erreichbar ist nur die Zentrale selbst."
+fi
+
 # Alle Einstellungen bei jedem Start vollständig setzen (--reset), damit
 # nichts von früheren Läufen übrig bleibt.
 options=(
@@ -61,7 +82,7 @@ options=(
     --accept-dns=false
     --accept-routes=false
     --advertise-exit-node=false
-    --advertise-routes=
+    "--advertise-routes=${routes}"
     --exit-node=
     --ssh=false
     # Keine Firewall-Regeln im Host von Home Assistant OS anfassen. Die

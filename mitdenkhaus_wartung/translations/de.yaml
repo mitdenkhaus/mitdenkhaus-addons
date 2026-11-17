@@ -11,3 +11,12 @@ configuration:
   tags:
     name: Tags
     description: Tags des Geräts im Tailnet (tag:kunde).
+  heimnetz_freigeben:
+    name: Heimnetz freigeben
+    description: Mitdenkhaus darf bei der Wartung auch Geräte im Heimnetz erreichen (z. B. die Weboberfläche eines Shelly).
+  standort_id:
+    name: Standort-Nummer
+    description: Eindeutige Nummer dieser Zentrale (vom Backend vorgegeben).
+  heimnetz:
+    name: Heimnetz
+    description: Nur falls die automatische Erkennung falsch liegt, z. B. 192.168.178.0/24.

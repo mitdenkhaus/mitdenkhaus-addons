@@ -1,0 +1,4 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# Geräteliste für die Werkstatt (nur mit erlaubter Heimnetz-Freigabe).
+exec /etc/s6-overlay/scripts/geraete.sh
