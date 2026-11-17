@@ -1,5 +1,5 @@
 name: Mitdenkhaus Wartung
-version: "0.2.0"
+version: "0.2.1"
 slug: mitdenkhaus_wartung
 description: Wartungszugang für Mitdenkhaus über Tailscale – nur solange Sie ihn erlauben.
 url: https://github.com/mitdenkhaus/mitdenkhaus-addons
@@ -35,7 +35,7 @@ schema:
   tags:
     - "str"
   # Heimnetz über Tailscale 4via6 freigeben (nur mit Zustimmung des Kunden).
-  heimnetz_freigeben: bool
+  heimnetz_freigeben: "bool?"
   # Eindeutige Standort-Nummer, vergibt das Backend.
   standort_id: "int(1,65535)?"
   # Heimnetz von Hand, z. B. 192.168.178.0/24; sonst automatisch erkannt.

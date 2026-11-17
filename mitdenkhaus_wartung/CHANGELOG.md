@@ -1,5 +1,10 @@
 # Änderungen
 
+## 0.2.1
+
+- `heimnetz_freigeben` ist optional. Apps, die die Option noch nicht kennen,
+  konnten die Wartung mit 0.2.0 nicht mehr einschalten („Missing option“).
+
 ## 0.2.0
 
 - Heimnetz-Freigabe (Option `heimnetz_freigeben`, standardmäßig aus): Das
